@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: clonedSemicolon/setup-strace@v13
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
@@ -34,6 +35,11 @@ jobs:
     - name: Check if the git repository is clean
       run: $(exit $(git status --porcelain --untracked-files=no | head -255 | wc -l)) || (echo "Dirty git tree"; git diff; exit 1)
     - run: npm run lint:ci && npm run tsc:ci
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/
   frontend:
     name: Build Frontend
     runs-on: ${{ matrix.os }}
@@ -43,6 +49,7 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     steps:
     - uses: actions/checkout@v4
+    - uses: clonedSemicolon/setup-strace@v13
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
@@ -55,11 +62,17 @@ jobs:
     - run: make
     - name: Check config.js syntax
       run: node config.js
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/
   android-rn-bundle-build:
     name: Build mobile bundle (Android)
     runs-on: macos-15
     steps:
     - uses: actions/checkout@v4
+    - uses: clonedSemicolon/setup-strace@v13
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
@@ -70,11 +83,17 @@ jobs:
         npm -v
     - run: npm install
     - run: npx react-native bundle --entry-file react/index.native.js --platform android --bundle-output /tmp/android.bundle --reset-cache
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/
   ios-rn-bundle-build:
     name: Build mobile bundle (iOS)
     runs-on: macos-15
     steps:
     - uses: actions/checkout@v4
+    - uses: clonedSemicolon/setup-strace@v13
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
@@ -100,12 +119,18 @@ jobs:
       working-directory: ./ios
       run: bundle exec pod install --repo-update --deployment
     - run: npx react-native bundle --entry-file react/index.native.js --platform ios --bundle-output /tmp/ios.bundle --reset-cache
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/
   android-sdk-build:
     name: Build mobile SDK (Android)
     runs-on: ubuntu-latest
     container: reactnativecommunity/react-native-android:v18.0
     steps:
     - uses: actions/checkout@v4
+    - uses: clonedSemicolon/setup-strace@v13
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
@@ -119,11 +144,17 @@ jobs:
         cd android
         ./gradlew :sdk:clean
         ./gradlew :sdk:assembleRelease
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/
   ios-sdk-build:
     name: Build mobile SDK (iOS)
     runs-on: macos-15
     steps:
     - uses: actions/checkout@v4
+    - uses: clonedSemicolon/setup-strace@v13
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
@@ -165,11 +196,17 @@ jobs:
           -framework ios/sdk/out/ios-device.xcarchive/Products/Library/Frameworks/JitsiMeetSDK.framework \
           -output ios/sdk/out/JitsiMeetSDK.xcframework
     - run: ls -lR ios/sdk/out
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/
   debian-build:
     name: Test Debian packages build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: clonedSemicolon/setup-strace@v13
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
@@ -183,3 +220,8 @@ jobs:
     - run: sudo apt-get install -y debhelper
     - run: dpkg-buildpackage -A -rfakeroot -us -uc -d
     - run: make source-package
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/

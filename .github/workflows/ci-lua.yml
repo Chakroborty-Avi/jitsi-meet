@@ -9,6 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - uses: clonedSemicolon/setup-strace@v13
     - name: Install luarocks
       run: sudo apt-get --install-recommends -y install luarocks
 
@@ -24,3 +25,8 @@ jobs:
             printf "::warning file=%s,line=%s,col=%s::%s\n", $1, $2, $3, $4
           }
         '
+    - name: Upload strace artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: strace-logs-${{ github.job }}-${{ matrix.flavor || 'lint' }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index || 0 }}
+        path: /home/runner/strace_logs/
